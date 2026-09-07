@@ -1,70 +1,84 @@
 import 'package:flutter/material.dart';
 import '../theme/theme.dart';
 
-/// Logo oficial de IN MEMORIAM.
-/// Usa el asset PNG cuando está disponible; si no, muestra el fallback de texto.
+/// Logo completo: símbolo + texto "IN MEMORIAM" (PNG con ambos).
+/// Usado en login, splash y pantallas de presentación.
 class IMLogo extends StatelessWidget {
   final double size;
-  final bool conTexto;
   final Color? colorFallback;
 
   const IMLogo({
     super.key,
-    this.size = 48,
-    this.conTexto = false,
+    this.size = 200,
     this.colorFallback,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Image.asset(
-          'assets/images/logo_inmemoriam.png',
-          width: size,
-          height: size,
-          fit: BoxFit.contain,
-          errorBuilder: (_, __, ___) => _fallback(),
-        ),
-        if (conTexto) ...[
-          const SizedBox(height: 8),
-          _textoLogo(),
-        ],
-      ],
+    return Image.asset(
+      'assets/images/logo_inmemoriam.png',
+      width: size,
+      fit: BoxFit.contain,
+      errorBuilder: (_, __, ___) => _fallback(),
     );
   }
 
   Widget _fallback() {
-    // Mientras no esté el PNG, muestra un tulipán esquematizado
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: colorFallback ?? AppColors.textPrimary,
-      ),
-      child: Center(
-        child: Text(
-          '🌷',
-          style: TextStyle(fontSize: size * 0.5),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: size * 0.6,
+          height: size * 0.6,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: colorFallback ?? AppColors.gold,
+          ),
+          child: Center(
+            child: Text('🌷', style: TextStyle(fontSize: size * 0.3)),
+          ),
         ),
-      ),
+        const SizedBox(height: 12),
+        Text(
+          'IN MEMORIAM',
+          style: AppTextStyles.headlineSmall.copyWith(
+            letterSpacing: 2,
+            color: colorFallback ?? AppColors.textPrimary,
+          ),
+        ),
+      ],
     );
   }
+}
 
-  Widget _textoLogo() {
-    return Text(
-      'IN MEMORIAM',
-      style: AppTextStyles.headlineSmall.copyWith(
-        letterSpacing: 2,
-        color: colorFallback ?? AppColors.textPrimary,
+/// Solo el símbolo (sin texto), para el AppBar del feed y espacios reducidos.
+/// Usa logo_inmemoriam_icon.png.
+class IMLogoIcon extends StatelessWidget {
+  final double size;
+  final Color? colorFallback;
+
+  const IMLogoIcon({
+    super.key,
+    this.size = 32,
+    this.colorFallback,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Image.asset(
+      'assets/images/logo_inmemoriam_icon.png',
+      width: size,
+      height: size,
+      fit: BoxFit.contain,
+      errorBuilder: (_, __, ___) => Text(
+        '🌷',
+        style: TextStyle(fontSize: size * 0.85),
       ),
     );
   }
 }
 
-/// Versión horizontal: icono + texto lado a lado (para AppBar)
+/// Versión horizontal: icono solo + texto "IN MEMORIAM" en código (para AppBar).
 class IMLogoHorizontal extends StatelessWidget {
   final double iconSize;
   final Color? color;
@@ -81,7 +95,7 @@ class IMLogoHorizontal extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Image.asset(
-          'assets/images/logo_inmemoriam.png',
+          'assets/images/logo_inmemoriam_icon.png',
           width: iconSize,
           height: iconSize,
           fit: BoxFit.contain,

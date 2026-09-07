@@ -53,9 +53,8 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget _buildLogo() {
     return Column(
       children: [
-        IMLogo(size: 80, conTexto: false),
-        const SizedBox(height: AppSpacing.md),
-        Text('IN MEMORIAM', style: AppTextStyles.displayMedium),
+        // Logo completo: símbolo + texto "IN MEMORIAM" del PNG
+        const IMLogo(size: 220),
         const SizedBox(height: AppSpacing.sm),
         Text(
           'El lugar donde los recuerdos perviven',

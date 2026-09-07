@@ -23,9 +23,7 @@ class SobreScreen extends StatelessWidget {
           Center(
             child: Column(
               children: [
-                IMLogo(size: 100, conTexto: false),
-                const SizedBox(height: AppSpacing.md),
-                Text('IN MEMORIAM', style: AppTextStyles.displayMedium),
+                IMLogo(size: 200),
                 const SizedBox(height: 4),
                 Text('Versión 1.0.0 (demo)', style: AppTextStyles.bodySmall),
               ],
