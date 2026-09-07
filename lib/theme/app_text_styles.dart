@@ -122,4 +122,14 @@ class AppTextStyles {
         fontWeight: FontWeight.w700,
         letterSpacing: 0.5,
       );
+
+  // ── Logo AppBar — misma tipografía que el texto del logo PNG ──
+  // Cinzel: slab serif romana en mayúsculas, equivalente a Trajan
+  static TextStyle logoAppBar({double fontSize = 18, Color? color}) =>
+      GoogleFonts.cinzel(
+        fontSize: fontSize,
+        fontWeight: FontWeight.w700,
+        color: color ?? const Color(0xFF1C1C1E), // AppColors.textPrimary
+        letterSpacing: 2.5,
+      );
 }

@@ -104,12 +104,11 @@ class IMLogoHorizontal extends StatelessWidget {
             style: TextStyle(fontSize: iconSize * 0.85),
           ),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 10),
         Text(
           'IN MEMORIAM',
-          style: AppTextStyles.headlineMedium.copyWith(
-            fontSize: iconSize * 0.72,
-            letterSpacing: 1,
+          style: AppTextStyles.logoAppBar(
+            fontSize: iconSize * 0.68,
             color: color ?? AppColors.textPrimary,
           ),
         ),
