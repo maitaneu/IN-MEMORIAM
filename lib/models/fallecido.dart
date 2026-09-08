@@ -11,7 +11,9 @@ class Fallecido {
   final String? resumenBiografia;
   final List<String> fotoGaleriaUrls;
   final InfoFuneral? infoFuneral;
-  final List<String> etiquetas; // estudios, profesion, etc.
+  final List<String> etiquetas;
+  /// ID del usuario tanatorio que gestiona esta publicación (opcional).
+  final String? tanatorioId;
 
   const Fallecido({
     required this.id,
@@ -27,6 +29,7 @@ class Fallecido {
     this.fotoGaleriaUrls = const [],
     this.infoFuneral,
     this.etiquetas = const [],
+    this.tanatorioId,
   });
 
   String get nombreCompleto => '$nombre $apellidos';

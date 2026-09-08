@@ -15,6 +15,8 @@ class PostRecuerdo {
   final DateTime fechaCreacion;
   final EstadoPost estado;
   final int likes;
+  /// Si es true, solo lo ve la familia (autorizado por ella).
+  final bool esPrivado;
 
   const PostRecuerdo({
     required this.id,
@@ -29,7 +31,24 @@ class PostRecuerdo {
     required this.fechaCreacion,
     this.estado = EstadoPost.pendienteRevision,
     this.likes = 0,
+    this.esPrivado = false,
   });
 
   bool get estaAprobado => estado == EstadoPost.aprobado;
+
+  PostRecuerdo copyWith({int? likes}) => PostRecuerdo(
+        id: id,
+        fallecidoId: fallecidoId,
+        autorId: autorId,
+        autorNombre: autorNombre,
+        autorAvatarUrl: autorAvatarUrl,
+        tipo: tipo,
+        texto: texto,
+        imagenesUrls: imagenesUrls,
+        videoUrl: videoUrl,
+        fechaCreacion: fechaCreacion,
+        estado: estado,
+        likes: likes ?? this.likes,
+        esPrivado: esPrivado,
+      );
 }

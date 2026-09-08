@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../models/models.dart';
+import '../../../services/mock_data.dart';
 import '../../../theme/theme.dart';
 import '../../../utils/date_utils.dart';
 
@@ -97,12 +99,11 @@ class TabFuneral extends StatelessWidget {
                 : null,
           ),
 
-        // Tanatorio
+        // Tanatorio clicable
         if (info.tanatorio != null)
-          _InfoCard(
-            icon: Icons.home_outlined,
-            titulo: 'Tanatorio',
-            valor: info.tanatorio!,
+          _InfoCardTanatorio(
+            fallecido: fallecido,
+            nombreTanatorio: info.tanatorio!,
           ),
 
         // Nota adicional
@@ -186,6 +187,93 @@ class _InfoCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ── InfoCard con link al tanatorio ───────────────────────────────
+class _InfoCardTanatorio extends StatelessWidget {
+  final Fallecido fallecido;
+  final String nombreTanatorio;
+
+  const _InfoCardTanatorio({
+    required this.fallecido,
+    required this.nombreTanatorio,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final tanatorioId = fallecido.tanatorioId;
+    final esClicable = tanatorioId != null &&
+        MockData.tanatorioPorId(tanatorioId) != null;
+
+    return GestureDetector(
+      onTap: esClicable
+          ? () => context.push('/tanatorio/$tanatorioId')
+          : null,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+        padding: AppSpacing.cardPadding,
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(AppSpacing.radiusMedium),
+          border: Border.all(
+            color: esClicable ? AppColors.gold : AppColors.border,
+            width: esClicable ? 1.0 : 0.5,
+          ),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 40, height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.goldLight.withOpacity(0.2),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.home_outlined,
+                  size: 20, color: AppColors.gold),
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('TANATORIO', style: AppTextStyles.caption),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(nombreTanatorio,
+                            style: AppTextStyles.bodyLarge),
+                      ),
+                      if (esClicable) ...[
+                        const SizedBox(width: 6),
+                        const Icon(Icons.verified,
+                            size: 14, color: AppColors.gold),
+                      ],
+                    ],
+                  ),
+                  if (esClicable) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      'Ver perfil del tanatorio',
+                      style: AppTextStyles.bodySmall.copyWith(
+                        color: AppColors.gold,
+                        decoration: TextDecoration.underline,
+                        decorationColor: AppColors.gold,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            if (esClicable)
+              const Icon(Icons.chevron_right,
+                  size: 18, color: AppColors.textHint),
+          ],
+        ),
       ),
     );
   }

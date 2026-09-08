@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../data/provincias_data.dart';
 import '../../models/models.dart';
 import '../../services/app_state.dart';
 import '../../theme/theme.dart';
@@ -21,19 +22,35 @@ class _FiltrosScreenState extends State<FiltrosScreen> {
   DateTime? _fechaDesde;
   DateTime? _fechaHasta;
 
-  static const _provincias = [
-    'Madrid', 'Barcelona', 'Sevilla', 'Valencia', 'Zaragoza',
-    'Málaga', 'Bilbao', 'Alicante', 'Córdoba', 'Valladolid',
-    'Murcia', 'Palma', 'Las Palmas', 'Santander', 'Pamplona',
-    'Burgos', 'Toledo', 'Cádiz', 'Huelva', 'Granada',
-  ];
+  static const _provincias = ProvinciasData.todas;
 
   static const Map<String, List<String>> _localidadesPorProvincia = {
     'Madrid': ['Madrid', 'Alcalá de Henares', 'Leganés', 'Getafe', 'Móstoles'],
-    'Barcelona': ['Barcelona', 'L\'Hospitalet', 'Badalona', 'Terrassa', 'Sabadell'],
+    'Barcelona': ['Barcelona', "L'Hospitalet", 'Badalona', 'Terrassa', 'Sabadell'],
     'Sevilla': ['Sevilla', 'Dos Hermanas', 'Alcalá de Guadaíra', 'Utrera'],
     'Valencia': ['Valencia', 'Gandia', 'Torrent', 'Sagunto', 'Paterna'],
     'Zaragoza': ['Zaragoza', 'Calatayud', 'Ejea de los Caballeros', 'Tarazona'],
+    'Málaga': ['Málaga', 'Marbella', 'Vélez-Málaga', 'Torremolinos', 'Fuengirola'],
+    'Alicante': ['Alicante', 'Elche', 'Torrevieja', 'Benidorm', 'Orihuela'],
+    'Murcia': ['Murcia', 'Cartagena', 'Lorca', 'Molina de Segura', 'Alcantarilla'],
+    'Córdoba': ['Córdoba', 'Lucena', 'Montilla', 'Puente Genil', 'Priego de Córdoba'],
+    'Valladolid': ['Valladolid', 'Medina del Campo', 'Laguna de Duero', 'Arroyo de la Encomienda'],
+    'Granada': ['Granada', 'Motril', 'Almuñécar', 'Loja', 'Guadix'],
+    'Cádiz': ['Cádiz', 'Jerez de la Frontera', 'Algeciras', 'San Fernando', 'El Puerto de Santa María'],
+    'Huelva': ['Huelva', 'Lepe', 'Almonte', 'Moguer', 'Ayamonte'],
+    'Burgos': ['Burgos', 'Aranda de Duero', 'Miranda de Ebro'],
+    'Toledo': ['Toledo', 'Talavera de la Reina', 'Illescas', 'Torrijos'],
+    'La Coruña': ['A Coruña', 'Santiago de Compostela', 'Ferrol', 'Narón'],
+    'Cantabria': ['Santander', 'Torrelavega', 'Castro-Urdiales', 'Laredo'],
+    'Navarra': ['Pamplona', 'Tudela', 'Barañáin', 'Burlada'],
+    'Asturias': ['Oviedo', 'Gijón', 'Avilés', 'Mieres'],
+    'La Rioja': ['Logroño', 'Calahorra', 'Arnedo', 'Nájera'],
+    'Las Palmas': ['Las Palmas de Gran Canaria', 'Telde', 'Arucas', 'Arrecife'],
+    'Santa Cruz de Tenerife': ['Santa Cruz de Tenerife', 'San Cristóbal de La Laguna', 'Arona', 'Adeje'],
+    'Illes Balears': ['Palma', 'Ibiza', 'Manacor', 'Calvià'],
+    'Vizcaya': ['Bilbao', 'Barakaldo', 'Getxo', 'Basauri'],
+    'Guipúzcoa': ['Donostia-San Sebastián', 'Irun', 'Errenteria', 'Zarautz'],
+    'Álava': ['Vitoria-Gasteiz', 'Llodio', 'Amurrio'],
   };
 
   @override

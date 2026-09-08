@@ -125,6 +125,7 @@ class FallecidosService {
     required Usuario autor,
     required String texto,
     List<String> imagenesUrls = const [],
+    bool esPrivado = false,
   }) async {
     await Future.delayed(const Duration(milliseconds: 300));
     final tipo = imagenesUrls.isNotEmpty ? TipoPost.imagen : TipoPost.texto;
@@ -139,9 +140,20 @@ class FallecidosService {
       imagenesUrls: imagenesUrls,
       fechaCreacion: DateTime.now(),
       estado: EstadoPost.pendienteRevision,
+      esPrivado: esPrivado,
     );
     MockData.posts.add(nuevo);
     return nuevo;
+  }
+
+  /// Da like a un recuerdo (toggle en memoria).
+  Future<int> toggleLike(String postId) async {
+    final idx = MockData.posts.indexWhere((p) => p.id == postId);
+    if (idx == -1) return 0;
+    final post = MockData.posts[idx];
+    final nuevosLikes = post.likes + 1;
+    MockData.posts[idx] = post.copyWith(likes: nuevosLikes);
+    return nuevosLikes;
   }
 
   List<String> get provinciasDisponibles =>

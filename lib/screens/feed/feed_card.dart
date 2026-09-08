@@ -3,6 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../models/models.dart';
+import '../../services/mock_data.dart';
 import '../../theme/theme.dart';
 import '../../utils/date_utils.dart';
 
@@ -52,8 +53,16 @@ class FeedCard extends StatelessWidget {
             Positioned(
               top: AppSpacing.md,
               left: AppSpacing.md,
-              child: _buildLocationBadge(),
+              child: _buildLocationBadge(context),
             ),
+
+            // ── Badge de tanatorio (debajo de localidad) ──────
+            if (fallecido.tanatorioId != null)
+              Positioned(
+                top: AppSpacing.md + 32,
+                left: AppSpacing.md,
+                child: _buildTanatorioBadge(context),
+              ),
 
             // ── Indicador de esquelas disponibles ─────────────
             Positioned(
@@ -172,7 +181,7 @@ class FeedCard extends StatelessWidget {
     );
   }
 
-  Widget _buildLocationBadge() {
+  Widget _buildLocationBadge(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
@@ -189,6 +198,34 @@ class FeedCard extends StatelessWidget {
             style: AppTextStyles.cardSubtitle.copyWith(fontSize: 12),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildTanatorioBadge(BuildContext context) {
+    final tanatorio = MockData.tanatorioPorId(fallecido.tanatorioId!);
+    if (tanatorio == null) return const SizedBox.shrink();
+    final nombre = tanatorio.datosTanatorio?.razonSocial ?? tanatorio.nombreCompleto;
+    return GestureDetector(
+      onTap: () => context.push('/tanatorio/${fallecido.tanatorioId}'),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: AppColors.gold.withOpacity(0.75),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.verified, size: 11, color: Colors.white),
+            const SizedBox(width: 4),
+            Text(
+              nombre,
+              style: AppTextStyles.cardSubtitle.copyWith(
+                  fontSize: 11, color: Colors.white),
+            ),
+          ],
+        ),
       ),
     );
   }

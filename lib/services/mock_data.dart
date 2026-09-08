@@ -38,6 +38,29 @@ class MockData {
       fechaRegistro: DateTime(2023, 6, 10),
       localidad: 'Madrid',
       provincia: 'Madrid',
+      datosTanatorio: const DatosTanatorio(
+        razonSocial: 'Tanatorio San Salvador',
+        cif: 'B-12345678',
+        direccion: 'Calle de Alcalá, 45',
+        telefono: '91 234 56 78',
+        web: 'www.tanatoriosansalvador.es',
+        descripcion:
+            'Llevamos más de 40 años acompañando a las familias en los momentos '
+            'más difíciles. Ofrecemos un servicio cercano, discreto y personalizado '
+            'en nuestras modernas instalaciones en el centro de Madrid.',
+        servicios: [
+          'Velatorio 24 horas',
+          'Sala de ceremonia',
+          'Servicio de floristería',
+          'Gestión de esquelas',
+          'Traslados nacionales e internacionales',
+          'Incineración',
+          'Asesoramiento legal y administrativo',
+        ],
+        logoUrl: 'https://i.pravatar.cc/150?img=60',
+        latitud: 40.4168,
+        longitud: -3.7038,
+      ),
     ),
     Usuario(
       id: 'u4',
@@ -75,6 +98,7 @@ class MockData {
       fotoPrincipalUrl: 'https://randomuser.me/api/portraits/men/75.jpg',
       localidad: 'Madrid',
       provincia: 'Madrid',
+      tanatorioId: 'u3',
       resumenBiografia:
           'Maestro de escuela durante más de 30 años, amante de la lectura y la música clásica. Dedicó su vida a la educación de cientos de niños en el barrio de Salamanca.',
       fotoGaleriaUrls: [
@@ -101,6 +125,7 @@ class MockData {
       fotoPrincipalUrl: 'https://randomuser.me/api/portraits/women/68.jpg',
       localidad: 'Sevilla',
       provincia: 'Sevilla',
+      tanatorioId: 'u3',
       resumenBiografia:
           'Enfermera vocacional y madre ejemplar de tres hijos. Su sonrisa y generosidad iluminaban cada habitación que pisaba.',
       fotoGaleriaUrls: [
@@ -441,6 +466,7 @@ class MockData {
       fechaCreacion: DateTime(2026, 8, 30, 10, 0),
       estado: EstadoPost.aprobado,
       likes: 18,
+      esPrivado: true,
     ),
     PostRecuerdo(
       id: 'p4',
@@ -456,6 +482,15 @@ class MockData {
       likes: 31,
     ),
   ];
+
+  // ─── SEGUIMIENTOS (usuarioId → lista de fallecidoIds) ─────────────────────
+
+  static final Map<String, List<String>> seguimientos = {
+    'u1': ['f1', 'f2'], // María sigue a Antonio y a Carmen
+    'u2': ['f1', 'f3'], // Carlos sigue a Antonio y a Manuel
+    'u4': ['f2', 'f3', 'f4'], // Ana sigue a Carmen, Manuel y Pilar
+    'u5': ['f3'], // Pedro sigue a Manuel
+  };
 
   // ─── HELPERS ──────────────────────────────────────────────────────────────
 
@@ -473,4 +508,50 @@ class MockData {
 
   static Fallecido? fallecidoPorId(String id) =>
       fallecidos.where((f) => f.id == id).firstOrNull;
+
+  static Usuario? tanatorioPorId(String id) =>
+      usuarios.where((u) => u.id == id && u.esTanatorio).firstOrNull;
+
+  static List<Fallecido> fallecidosDeTanatorio(String tanatorioId) =>
+      fallecidos.where((f) => f.tanatorioId == tanatorioId).toList()
+        ..sort((a, b) => b.fechaFallecimiento.compareTo(a.fechaFallecimiento));
+
+  // ── Seguimientos ────────────────────────────────────────────────────────
+
+  static List<String> seguimientosDeUsuario(String usuarioId) =>
+      List<String>.from(seguimientos[usuarioId] ?? []);
+
+  static bool sigueA(String usuarioId, String fallecidoId) =>
+      (seguimientos[usuarioId] ?? []).contains(fallecidoId);
+
+  static void seguir(String usuarioId, String fallecidoId) {
+    seguimientos.putIfAbsent(usuarioId, () => []);
+    if (!seguimientos[usuarioId]!.contains(fallecidoId)) {
+      seguimientos[usuarioId]!.add(fallecidoId);
+    }
+  }
+
+  static void dejarDeSeguir(String usuarioId, String fallecidoId) {
+    seguimientos[usuarioId]?.remove(fallecidoId);
+  }
+
+  // ── Actividad por usuario ────────────────────────────────────────────────
+
+  static List<Comentario> condolenciasDeUsuario(String usuarioId) =>
+      comentarios
+          .where((c) => c.autorId == usuarioId)
+          .toList()
+        ..sort((a, b) => b.fechaCreacion.compareTo(a.fechaCreacion));
+
+  static List<PostRecuerdo> recuerdosDeUsuario(String usuarioId) =>
+      posts
+          .where((p) => p.autorId == usuarioId)
+          .toList()
+        ..sort((a, b) => b.fechaCreacion.compareTo(a.fechaCreacion));
+
+  static List<FlorVirtual> floresDeUsuario(String usuarioId) =>
+      flores
+          .where((f) => f.usuarioId == usuarioId)
+          .toList()
+        ..sort((a, b) => b.fecha.compareTo(a.fecha));
 }

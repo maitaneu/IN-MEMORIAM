@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../models/models.dart';
 import '../../services/app_state.dart';
+import '../../services/mock_data.dart';
 import '../../theme/theme.dart';
 import '../../utils/date_utils.dart';
 import '../../widgets/widgets.dart';
@@ -95,7 +97,7 @@ class _DetailScreenState extends State<DetailScreen>
       foregroundColor: Colors.white,
       leading: IconButton(
         icon: Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             color: Colors.black38,
             shape: BoxShape.circle,
           ),
@@ -104,6 +106,34 @@ class _DetailScreenState extends State<DetailScreen>
         ),
         onPressed: () => Navigator.of(context).pop(),
       ),
+      actions: [
+        // Botón seguir en la barra cuando está colapsada
+        Consumer<AppState>(
+          builder: (context, state, _) {
+            if (!state.estaLogueado) return const SizedBox.shrink();
+            final sigue = state.sigueA(f.id);
+            return Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: IconButton(
+                tooltip: sigue ? 'Dejar de seguir' : 'Seguir',
+                icon: Container(
+                  decoration: const BoxDecoration(
+                    color: Colors.black38,
+                    shape: BoxShape.circle,
+                  ),
+                  padding: const EdgeInsets.all(6),
+                  child: Icon(
+                    sigue ? Icons.notifications_active : Icons.notifications_none,
+                    color: sigue ? AppColors.goldLight : Colors.white,
+                    size: 20,
+                  ),
+                ),
+                onPressed: () => _toggleSeguir(context, f, state),
+              ),
+            );
+          },
+        ),
+      ],
       flexibleSpace: FlexibleSpaceBar(
         background: Stack(
           fit: StackFit.expand,
@@ -129,6 +159,21 @@ class _DetailScreenState extends State<DetailScreen>
     );
   }
 
+  void _toggleSeguir(BuildContext context, Fallecido f, AppState state) {
+    final ahoraSigue = state.toggleSeguir(f.id);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          ahoraSigue
+              ? 'Siguiendo a ${f.nombreCompleto}'
+              : 'Has dejado de seguir a ${f.nombreCompleto}',
+        ),
+        duration: const Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
   Widget _buildHeroInfo(Fallecido f) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -150,8 +195,53 @@ class _DetailScreenState extends State<DetailScreen>
             const Icon(Icons.person_outline, size: 14, color: Colors.white60),
             const SizedBox(width: 4),
             Text('${f.edad} años', style: AppTextStyles.cardSubtitle),
+            const Spacer(),
+            // Botón seguir en el hero expandido
+            Consumer<AppState>(
+              builder: (context, state, _) {
+                if (!state.estaLogueado) return const SizedBox.shrink();
+                final sigue = state.sigueA(f.id);
+                return GestureDetector(
+                  onTap: () => _toggleSeguir(context, f, state),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: sigue
+                          ? AppColors.gold.withOpacity(0.85)
+                          : Colors.white.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: sigue ? AppColors.goldLight : Colors.white38,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          sigue ? Icons.notifications_active : Icons.notifications_none,
+                          size: 13,
+                          color: Colors.white,
+                        ),
+                        const SizedBox(width: 5),
+                        Text(
+                          sigue ? 'Siguiendo' : 'Seguir',
+                          style: AppTextStyles.cardSubtitle.copyWith(
+                            fontSize: 12,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
           ],
         ),
+        // Tanatorio clicable si existe
+        if (f.tanatorioId != null)
+          _TanatorioBadgeHero(tanatorioId: f.tanatorioId!),
       ],
     );
   }
@@ -233,4 +323,43 @@ class _TabBarDelegate extends SliverPersistentHeaderDelegate {
   double get minExtent => tabBar.preferredSize.height;
   @override
   bool shouldRebuild(covariant _TabBarDelegate old) => false;
+}
+
+// ── Badge de tanatorio clicable en el hero ────────────────────────
+class _TanatorioBadgeHero extends StatelessWidget {
+  final String tanatorioId;
+
+  const _TanatorioBadgeHero({required this.tanatorioId});
+
+  @override
+  Widget build(BuildContext context) {
+    final tanatorio = MockData.tanatorioPorId(tanatorioId);
+    if (tanatorio == null) return const SizedBox.shrink();
+    final nombre = tanatorio.datosTanatorio?.razonSocial ??
+        tanatorio.nombreCompleto;
+
+    return GestureDetector(
+      onTap: () => context.push('/tanatorio/$tanatorioId'),
+      child: Padding(
+        padding: const EdgeInsets.only(top: 6),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.verified, size: 13, color: AppColors.goldLight),
+            const SizedBox(width: 5),
+            Text(
+              nombre,
+              style: AppTextStyles.cardSubtitle.copyWith(
+                color: AppColors.goldLight,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                decoration: TextDecoration.underline,
+                decorationColor: AppColors.goldLight,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

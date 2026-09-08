@@ -9,6 +9,7 @@ import '../screens/filters/filtros_screen.dart';
 import '../screens/legal/ayuda_screen.dart';
 import '../screens/legal/legal_screen.dart';
 import '../screens/legal/sobre_screen.dart';
+import '../screens/tanatorio/tanatorio_screen.dart';
 import '../theme/theme.dart';
 
 /// Shell con BottomNavigationBar compartido para las rutas principales.
@@ -61,6 +62,12 @@ class AppRouter {
       GoRoute(
         path: '/sobre',
         builder: (context, state) => const SobreScreen(),
+      ),
+      GoRoute(
+        path: '/tanatorio/:id',
+        builder: (context, state) => TanatorioScreen(
+          tanatorioId: state.pathParameters['id']!,
+        ),
       ),
     ],
 
