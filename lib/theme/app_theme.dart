@@ -39,7 +39,7 @@ class AppTheme {
       ),
 
       // Cards
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: AppColors.surface,
         elevation: 0,
         shape: RoundedRectangleBorder(
@@ -132,7 +132,7 @@ class AppTheme {
       ),
 
       // Tabs
-      tabBarTheme: TabBarTheme(
+      tabBarTheme: TabBarThemeData(
         labelColor: AppColors.gold,
         unselectedLabelColor: AppColors.textSecondary,
         indicatorColor: AppColors.gold,
