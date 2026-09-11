@@ -174,7 +174,7 @@ class TanatorioScreen extends StatelessWidget {
       foregroundColor: AppColors.textPrimary,
       leading: IconButton(
         icon: const Icon(Icons.arrow_back),
-        onPressed: () => Navigator.of(context).pop(),
+        onPressed: () => context.pop(),
       ),
       flexibleSpace: FlexibleSpaceBar(
         background: Container(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../data/provincias_data.dart';
 import '../../models/models.dart';
@@ -76,7 +77,7 @@ class _FiltrosScreenState extends State<FiltrosScreen> {
         title: const Text('Filtrar fallecidos'),
         leading: IconButton(
           icon: const Icon(Icons.close),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => context.pop(),
         ),
         actions: [
           TextButton(
@@ -283,7 +284,7 @@ class _FiltrosScreenState extends State<FiltrosScreen> {
     );
 
     context.read<AppState>().actualizarFiltro(nuevoBusqueda);
-    Navigator.of(context).pop();
+    context.pop();
   }
 }
 

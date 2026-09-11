@@ -104,7 +104,7 @@ class _DetailScreenState extends State<DetailScreen>
           padding: const EdgeInsets.all(6),
           child: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
         ),
-        onPressed: () => Navigator.of(context).pop(),
+        onPressed: () => context.pop(),
       ),
       actions: [
         // Botón seguir en la barra cuando está colapsada

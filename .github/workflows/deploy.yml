@@ -1,49 +1,35 @@
-name: Deploy Flutter Web to GitHub Pages
+name: Deploy to GitHub Pages
 
 on:
   push:
     branches:
       - main
-  workflow_dispatch:
-
-permissions:
-  contents: read
-  pages: write
-  id-token: write
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
+      - name: Checkout código
+        uses: actions/checkout@v4
 
-      - name: Setup Flutter
+      # Usa exactamente la misma versión de Flutter que en local
+      - name: Setup Flutter 3.24.5
         uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          flutter-version: '3.24.5'
+          channel: 'stable'
+          cache: true
 
-      - name: Install dependencies
+      - name: Instalar dependencias
         run: flutter pub get
 
-      - name: Build Flutter Web
-        run: flutter build web --release --base-href "/IN-MEMORIAM/"
+      - name: Build web (HTML renderer, sin tree-shake-icons)
+        run: flutter build web --base-href "/IN-MEMORIAM/" --web-renderer html --no-tree-shake-icons
 
-      - name: Upload web build
-        uses: actions/upload-pages-artifact@v4
+      - name: Deploy a GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          path: build/web
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: build/web
+          publish_branch: gh-pages
