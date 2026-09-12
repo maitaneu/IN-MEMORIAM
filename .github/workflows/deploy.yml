@@ -22,8 +22,8 @@ jobs:
       - name: Instalar dependencias
         run: flutter pub get
 
-      - name: Build web (HTML renderer)
-        run: flutter build web --base-href "/IN-MEMORIAM/" --web-renderer html --no-tree-shake-icons
+      - name: Build web
+        run: flutter build web --base-href "/IN-MEMORIAM/" --no-tree-shake-icons
 
       - name: Deploy a GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
