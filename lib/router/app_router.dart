@@ -12,6 +12,32 @@ import '../screens/legal/sobre_screen.dart';
 import '../screens/tanatorio/tanatorio_screen.dart';
 import '../theme/theme.dart';
 
+/// Transición de izquierda a derecha (efecto "retroceder").
+/// Usada en todas las rutas para que el push entre desde la derecha
+/// y el pop salga hacia la derecha, que es lo natural en móvil.
+Page<T> _slideTransition<T>(BuildContext context, GoRouterState state, Widget child) {
+  return CustomTransitionPage<T>(
+    key: state.pageKey,
+    child: child,
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      const begin = Offset(1.0, 0.0);
+      const end = Offset.zero;
+      const curve = Curves.easeInOut;
+      final tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+      final offsetAnimation = animation.drive(tween);
+      // Cuando hacemos pop, la pantalla sale hacia la derecha
+      final secondaryTween = Tween(begin: Offset.zero, end: const Offset(-0.3, 0.0))
+          .chain(CurveTween(curve: curve));
+      final secondaryOffsetAnimation = secondaryAnimation.drive(secondaryTween);
+      return SlideTransition(
+        position: secondaryOffsetAnimation,
+        child: SlideTransition(position: offsetAnimation, child: child),
+      );
+    },
+    transitionDuration: const Duration(milliseconds: 280),
+  );
+}
+
 /// Shell con BottomNavigationBar compartido para las rutas principales.
 class AppRouter {
   static final GoRouter router = GoRouter(
@@ -35,38 +61,52 @@ class AppRouter {
       // ── Pantallas sin bottom nav ────────────────────────────
       GoRoute(
         path: '/fallecido/:id',
-        builder: (context, state) => DetailScreen(
-          fallecidoId: state.pathParameters['id']!,
+        pageBuilder: (context, state) => _slideTransition(
+          context, state,
+          DetailScreen(fallecidoId: state.pathParameters['id']!),
         ),
       ),
       GoRoute(
         path: '/login',
-        builder: (context, state) => const LoginScreen(),
+        pageBuilder: (context, state) => _slideTransition(
+          context, state, const LoginScreen(),
+        ),
       ),
       GoRoute(
         path: '/registro',
-        builder: (context, state) => const RegistroScreen(),
+        pageBuilder: (context, state) => _slideTransition(
+          context, state, const RegistroScreen(),
+        ),
       ),
       GoRoute(
         path: '/filtros',
-        builder: (context, state) => const FiltrosScreen(),
+        pageBuilder: (context, state) => _slideTransition(
+          context, state, const FiltrosScreen(),
+        ),
       ),
       GoRoute(
         path: '/ayuda',
-        builder: (context, state) => const AyudaScreen(),
+        pageBuilder: (context, state) => _slideTransition(
+          context, state, const AyudaScreen(),
+        ),
       ),
       GoRoute(
         path: '/legal',
-        builder: (context, state) => const LegalScreen(),
+        pageBuilder: (context, state) => _slideTransition(
+          context, state, const LegalScreen(),
+        ),
       ),
       GoRoute(
         path: '/sobre',
-        builder: (context, state) => const SobreScreen(),
+        pageBuilder: (context, state) => _slideTransition(
+          context, state, const SobreScreen(),
+        ),
       ),
       GoRoute(
         path: '/tanatorio/:id',
-        builder: (context, state) => TanatorioScreen(
-          tanatorioId: state.pathParameters['id']!,
+        pageBuilder: (context, state) => _slideTransition(
+          context, state,
+          TanatorioScreen(tanatorioId: state.pathParameters['id']!),
         ),
       ),
     ],
