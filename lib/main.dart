@@ -7,7 +7,7 @@ import 'utils/date_utils.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await IMDateUtils.init(); // inicializa locale español
+  await IMDateUtils.init();
   runApp(const InMemoriamApp());
 }
 

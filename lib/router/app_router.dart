@@ -12,6 +12,11 @@ import '../screens/legal/sobre_screen.dart';
 import '../screens/tanatorio/tanatorio_screen.dart';
 import '../theme/theme.dart';
 
+/// Sin animación — para cambios entre tabs del bottom nav.
+Page<T> _noTransition<T>(BuildContext context, GoRouterState state, Widget child) {
+  return NoTransitionPage<T>(key: state.pageKey, child: child);
+}
+
 /// Transición de izquierda a derecha (efecto "retroceder").
 /// Usada en todas las rutas para que el push entre desde la derecha
 /// y el pop salga hacia la derecha, que es lo natural en móvil.
@@ -49,11 +54,13 @@ class AppRouter {
         routes: [
           GoRoute(
             path: '/',
-            builder: (context, state) => const FeedScreen(),
+            pageBuilder: (context, state) =>
+                _noTransition(context, state, const FeedScreen()),
           ),
           GoRoute(
             path: '/perfil',
-            builder: (context, state) => const PerfilScreen(),
+            pageBuilder: (context, state) =>
+                _noTransition(context, state, const PerfilScreen()),
           ),
         ],
       ),
