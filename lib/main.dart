@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'config/supabase_config.dart';
 import 'router/app_router.dart';
 import 'services/app_state.dart';
 import 'theme/theme.dart';
@@ -8,6 +10,12 @@ import 'utils/date_utils.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await IMDateUtils.init();
+
+  await Supabase.initialize(
+    url: SupabaseConfig.url,
+    anonKey: SupabaseConfig.anonKey,
+  );
+
   runApp(const InMemoriamApp());
 }
 
@@ -17,7 +25,7 @@ class InMemoriamApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => AppState(),
+      create: (_) => AppState()..inicializar(),
       child: MaterialApp.router(
         title: 'IN MEMORIAM',
         debugShowCheckedModeBanner: false,

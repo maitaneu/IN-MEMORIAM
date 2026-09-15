@@ -26,5 +26,5 @@ doc/api/
 .flutter-plugins
 .flutter-plugins-dependencies
 
-# Credenciales Supabase — nunca subir a GitHub
-lib/config/supabase_config.dart
+# Credenciales locales (ya no se excluyen — usan defaultValue seguros)
+# lib/config/supabase_config.dart
