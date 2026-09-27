@@ -75,9 +75,8 @@ class AuthService {
   }
 
   Future<void> _insertarPerfil(Map<String, dynamic> datos) async {
-    // Pequeño delay para asegurar que Supabase Auth ha propagado la sesión
-    await Future.delayed(const Duration(milliseconds: 500));
-    await SB.client.from('usuarios').insert(datos);
+    // Llama a función SQL con security definer que bypasa RLS
+    await SB.client.rpc('crear_perfil_usuario', params: datos);
   }
 
   // ── Auth público ──────────────────────────────────────────────
@@ -116,14 +115,13 @@ class AuthService {
       final res = await SB.client.auth.signUp(email: email, password: password);
       if (res.user == null) return AuthResultado.error('No se pudo crear la cuenta.');
       await _insertarPerfil({
-        'id': res.user!.id,
-        'nombre': nombre,
-        'apellidos': apellidos,
-        'email': email,
-        'rol': 'registrado',
-        'localidad': localidad,
-        'provincia': provincia,
-        'fecha_registro': DateTime.now().toIso8601String(),
+        'p_id': res.user!.id,
+        'p_nombre': nombre,
+        'p_apellidos': apellidos,
+        'p_email': email,
+        'p_rol': 'registrado',
+        'p_localidad': localidad,
+        'p_provincia': provincia,
       });
       final usuario = await cargarPerfil(res.user!.id);
       _usuarioActual = usuario;
@@ -149,17 +147,16 @@ class AuthService {
       final res = await SB.client.auth.signUp(email: email, password: password);
       if (res.user == null) return AuthResultado.error('No se pudo crear la cuenta.');
       await _insertarPerfil({
-        'id': res.user!.id,
-        'nombre': nombre,
-        'apellidos': apellidos,
-        'email': email,
-        'rol': 'particular',
-        'localidad': localidad,
-        'provincia': provincia,
-        'relacion_fallecido': relacionFallecido,
-        'documento_identidad': documentoIdentidad,
-        'estado_pago': 'pendiente',
-        'fecha_registro': DateTime.now().toIso8601String(),
+        'p_id': res.user!.id,
+        'p_nombre': nombre,
+        'p_apellidos': apellidos,
+        'p_email': email,
+        'p_rol': 'particular',
+        'p_localidad': localidad,
+        'p_provincia': provincia,
+        'p_relacion_fallecido': relacionFallecido,
+        'p_documento_identidad': documentoIdentidad,
+        'p_estado_pago': 'pendiente',
       });
       final usuario = await cargarPerfil(res.user!.id);
       _usuarioActual = usuario;
@@ -189,20 +186,19 @@ class AuthService {
       final res = await SB.client.auth.signUp(email: email, password: password);
       if (res.user == null) return AuthResultado.error('No se pudo crear la cuenta.');
       await _insertarPerfil({
-        'id': res.user!.id,
-        'nombre': nombre,
-        'apellidos': apellidos,
-        'email': email,
-        'rol': 'tanatorio',
-        'localidad': localidad,
-        'provincia': provincia,
-        'razon_social': razonSocial,
-        'cif': cif,
-        'direccion': direccion,
-        'telefono': telefono,
-        'web': web,
-        'descripcion': descripcion,
-        'fecha_registro': DateTime.now().toIso8601String(),
+        'p_id': res.user!.id,
+        'p_nombre': nombre,
+        'p_apellidos': apellidos,
+        'p_email': email,
+        'p_rol': 'tanatorio',
+        'p_localidad': localidad,
+        'p_provincia': provincia,
+        'p_razon_social': razonSocial,
+        'p_cif': cif,
+        'p_direccion': direccion,
+        'p_telefono': telefono,
+        'p_web': web,
+        'p_descripcion': descripcion,
       });
       final usuario = await cargarPerfil(res.user!.id);
       _usuarioActual = usuario;
