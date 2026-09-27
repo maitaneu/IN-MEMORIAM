@@ -75,6 +75,8 @@ class AuthService {
   }
 
   Future<void> _insertarPerfil(Map<String, dynamic> datos) async {
+    // Pequeño delay para asegurar que Supabase Auth ha propagado la sesión
+    await Future.delayed(const Duration(milliseconds: 500));
     await SB.client.from('usuarios').insert(datos);
   }
 
@@ -128,8 +130,8 @@ class AuthService {
       return AuthResultado.ok(usuario!);
     } on AuthException catch (e) {
       return AuthResultado.error(_mensajeAuth(e.message));
-    } catch (_) {
-      return AuthResultado.error('Error al crear la cuenta.');
+    } catch (e) {
+      return AuthResultado.error('Error al crear la cuenta: $e');
     }
   }
 
@@ -164,8 +166,8 @@ class AuthService {
       return AuthResultado.ok(usuario!);
     } on AuthException catch (e) {
       return AuthResultado.error(_mensajeAuth(e.message));
-    } catch (_) {
-      return AuthResultado.error('Error al crear la cuenta.');
+    } catch (e) {
+      return AuthResultado.error('Error al crear la cuenta: $e');
     }
   }
 
@@ -207,8 +209,8 @@ class AuthService {
       return AuthResultado.ok(usuario!);
     } on AuthException catch (e) {
       return AuthResultado.error(_mensajeAuth(e.message));
-    } catch (_) {
-      return AuthResultado.error('Error al crear la cuenta.');
+    } catch (e) {
+      return AuthResultado.error('Error al crear la cuenta: $e');
     }
   }
 
