@@ -166,7 +166,7 @@ class AuthService {
     } on AuthException catch (e) {
       return AuthResultado.error(_mensajeAuth(e.message));
     } catch (e) {
-      return AuthResultado.error('Error al crear la cuenta: $e');
+      return AuthResultado.error(_mensajeError(e.toString()));
     }
   }
 
@@ -214,7 +214,7 @@ class AuthService {
     } on AuthException catch (e) {
       return AuthResultado.error(_mensajeAuth(e.message));
     } catch (e) {
-      return AuthResultado.error('Error al crear la cuenta: $e');
+      return AuthResultado.error(_mensajeError(e.toString()));
     }
   }
 
@@ -272,7 +272,7 @@ class AuthService {
     } on AuthException catch (e) {
       return AuthResultado.error(_mensajeAuth(e.message));
     } catch (e) {
-      return AuthResultado.error('Error al crear la cuenta: $e');
+      return AuthResultado.error(_mensajeError(e.toString()));
     }
   }
 
@@ -296,6 +296,19 @@ class AuthService {
     if (msg.contains('already registered')) return 'Ya existe una cuenta con ese email.';
     if (msg.contains('Password should be')) return 'La contraseña debe tener al menos 6 caracteres.';
     return msg;
+  }
+
+  String _mensajeError(String msg) {
+    if (msg.contains('duplicate key') || msg.contains('23505')) {
+      return 'Ya existe una cuenta con ese email. Inicia sesión o usa otro email.';
+    }
+    if (msg.contains('violates row-level security') || msg.contains('42501')) {
+      return 'No tienes permiso para realizar esta acción.';
+    }
+    if (msg.contains('network') || msg.contains('SocketException')) {
+      return 'Sin conexión a internet. Comprueba tu red.';
+    }
+    return 'Error al crear la cuenta. Inténtalo de nuevo.';
   }
 }
 
