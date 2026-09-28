@@ -65,18 +65,47 @@ class AuthService {
   // ── Helpers privados ──────────────────────────────────────────
 
   Future<Usuario?> cargarPerfil(String uid) async {
-    final row = await SB.client
-        .from('usuarios')
-        .select()
-        .eq('id', uid)
-        .maybeSingle();
-    if (row == null) return null;
-    return rowToUsuario(row);
+    try {
+      final row = await SB.client
+          .from('usuarios')
+          .select()
+          .eq('id', uid)
+          .maybeSingle();
+      if (row == null) return null;
+      return rowToUsuario(row);
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<void> _insertarPerfil(Map<String, dynamic> datos) async {
-    // Llama a función SQL con security definer que bypasa RLS
     await SB.client.rpc('crear_perfil_usuario', params: datos);
+  }
+
+  /// Construye un Usuario directamente sin releer la BD (para uso post-registro).
+  Usuario _construirUsuario({
+    required String id,
+    required String nombre,
+    required String apellidos,
+    required String email,
+    required RolUsuario rol,
+    String? localidad,
+    String? provincia,
+    DatosTanatorio? datosTanatorio,
+    DatosParticular? datosParticular,
+  }) {
+    return Usuario(
+      id: id,
+      nombre: nombre,
+      apellidos: apellidos,
+      email: email,
+      rol: rol,
+      fechaRegistro: DateTime.now(),
+      localidad: localidad,
+      provincia: provincia,
+      datosTanatorio: datosTanatorio,
+      datosParticular: datosParticular,
+    );
   }
 
   // ── Auth público ──────────────────────────────────────────────
@@ -123,9 +152,17 @@ class AuthService {
         'p_localidad': localidad,
         'p_provincia': provincia,
       });
-      final usuario = await cargarPerfil(res.user!.id);
+      final usuario = _construirUsuario(
+        id: res.user!.id,
+        nombre: nombre,
+        apellidos: apellidos,
+        email: email,
+        rol: RolUsuario.registrado,
+        localidad: localidad,
+        provincia: provincia,
+      );
       _usuarioActual = usuario;
-      return AuthResultado.ok(usuario!);
+      return AuthResultado.ok(usuario);
     } on AuthException catch (e) {
       return AuthResultado.error(_mensajeAuth(e.message));
     } catch (e) {
@@ -158,9 +195,22 @@ class AuthService {
         'p_documento_identidad': documentoIdentidad,
         'p_estado_pago': 'pendiente',
       });
-      final usuario = await cargarPerfil(res.user!.id);
+      final usuario = _construirUsuario(
+        id: res.user!.id,
+        nombre: nombre,
+        apellidos: apellidos,
+        email: email,
+        rol: RolUsuario.particular,
+        localidad: localidad,
+        provincia: provincia,
+        datosParticular: DatosParticular(
+          relacionFallecido: relacionFallecido,
+          documentoIdentidad: documentoIdentidad,
+          estadoPago: EstadoPagoParticular.pendiente,
+        ),
+      );
       _usuarioActual = usuario;
-      return AuthResultado.ok(usuario!);
+      return AuthResultado.ok(usuario);
     } on AuthException catch (e) {
       return AuthResultado.error(_mensajeAuth(e.message));
     } catch (e) {
@@ -200,9 +250,25 @@ class AuthService {
         'p_web': web,
         'p_descripcion': descripcion,
       });
-      final usuario = await cargarPerfil(res.user!.id);
+      final usuario = _construirUsuario(
+        id: res.user!.id,
+        nombre: nombre,
+        apellidos: apellidos,
+        email: email,
+        rol: RolUsuario.tanatorio,
+        localidad: localidad,
+        provincia: provincia,
+        datosTanatorio: DatosTanatorio(
+          razonSocial: razonSocial,
+          cif: cif,
+          direccion: direccion,
+          telefono: telefono,
+          web: web,
+          descripcion: descripcion,
+        ),
+      );
       _usuarioActual = usuario;
-      return AuthResultado.ok(usuario!);
+      return AuthResultado.ok(usuario);
     } on AuthException catch (e) {
       return AuthResultado.error(_mensajeAuth(e.message));
     } catch (e) {
