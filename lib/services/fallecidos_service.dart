@@ -4,7 +4,6 @@ import 'supabase_service.dart';
 /// Capa de servicio que lee y escribe en Supabase.
 /// La interfaz pública es idéntica a la versión mock — las pantallas no cambian.
 class FallecidosService {
-
   // ── Conversores fila → modelo (públicos para AppState) ────────
 
   static Fallecido rowToFallecido(Map<String, dynamic> r) {
@@ -115,12 +114,12 @@ class FallecidosService {
       query = query.eq('localidad', filtro.localidad!);
     }
     if (filtro.fechaDesde != null) {
-      query = query.gte('fecha_fallecimiento',
-          filtro.fechaDesde!.toIso8601String());
+      query = query.gte(
+          'fecha_fallecimiento', filtro.fechaDesde!.toIso8601String());
     }
     if (filtro.fechaHasta != null) {
-      query = query.lte('fecha_fallecimiento',
-          filtro.fechaHasta!.toIso8601String());
+      query = query.lte(
+          'fecha_fallecimiento', filtro.fechaHasta!.toIso8601String());
     }
     if (filtro.textoBusqueda != null && filtro.textoBusqueda!.isNotEmpty) {
       query = query.or(
@@ -145,11 +144,8 @@ class FallecidosService {
   }
 
   Future<Fallecido?> getDetalle(String id) async {
-    final row = await SB.client
-        .from('fallecidos')
-        .select()
-        .eq('id', id)
-        .maybeSingle();
+    final row =
+        await SB.client.from('fallecidos').select().eq('id', id).maybeSingle();
     if (row == null) return null;
     return rowToFallecido(row);
   }
@@ -164,6 +160,33 @@ class FallecidosService {
     return (rows as List)
         .map((r) => rowToEsquela(r as Map<String, dynamic>))
         .toList();
+  }
+
+  Future<Esquela> publicarEsquela({
+    required String fallecidoId,
+    required Usuario autor,
+    required String titulo,
+    required String texto,
+    String? imagenUrl,
+    List<String> firmantes = const [],
+  }) async {
+    final datos = <String, dynamic>{
+      'fallecido_id': fallecidoId,
+      'autor_id': autor.id,
+      'autor_nombre': autor.nombrePublico,
+      'autor_tanatorio': autor.esTanatorio,
+      'titulo': titulo.trim(),
+      'texto': texto.trim(),
+      'firmantes': firmantes,
+      'estado': 'pendiente',
+    };
+    if (imagenUrl != null && imagenUrl.trim().isNotEmpty) {
+      datos['imagen_url'] = imagenUrl.trim();
+    }
+
+    final row =
+        await SB.client.from('esquelas').insert(datos).select().single();
+    return rowToEsquela(row as Map<String, dynamic>);
   }
 
   Future<List<Comentario>> getComentarios(String fallecidoId) async {
@@ -207,13 +230,17 @@ class FallecidosService {
     required Usuario autor,
     required String texto,
   }) async {
-    final row = await SB.client.from('comentarios').insert({
-      'fallecido_id': fallecidoId,
-      'autor_id': autor.id,
-      'autor_nombre': autor.nombreCompleto,
-      'texto': texto,
-      'estado': 'pendiente_revision',
-    }).select().single();
+    final row = await SB.client
+        .from('comentarios')
+        .insert({
+          'fallecido_id': fallecidoId,
+          'autor_id': autor.id,
+          'autor_nombre': autor.nombreCompleto,
+          'texto': texto,
+          'estado': 'pendiente_revision',
+        })
+        .select()
+        .single();
     return rowToComentario(row as Map<String, dynamic>);
   }
 
@@ -223,13 +250,17 @@ class FallecidosService {
     required TipoFlor tipo,
     String? mensaje,
   }) async {
-    final row = await SB.client.from('flores').insert({
-      'fallecido_id': fallecidoId,
-      'usuario_id': usuario.id,
-      'usuario_nombre': usuario.nombreCompleto,
-      'tipo': tipo.name,
-      'mensaje': mensaje,
-    }).select().single();
+    final row = await SB.client
+        .from('flores')
+        .insert({
+          'fallecido_id': fallecidoId,
+          'usuario_id': usuario.id,
+          'usuario_nombre': usuario.nombreCompleto,
+          'tipo': tipo.name,
+          'mensaje': mensaje,
+        })
+        .select()
+        .single();
     return rowToFlor(row as Map<String, dynamic>);
   }
 
@@ -241,27 +272,28 @@ class FallecidosService {
     bool esPrivado = false,
   }) async {
     final tipo = imagenesUrls.isNotEmpty ? TipoPost.imagen : TipoPost.texto;
-    final row = await SB.client.from('posts').insert({
-      'fallecido_id': fallecidoId,
-      'autor_id': autor.id,
-      'autor_nombre': autor.nombreCompleto,
-      'tipo': tipo.name,
-      'texto': texto,
-      'imagenes_urls': imagenesUrls,
-      'es_privado': esPrivado,
-      'estado': 'pendiente_revision',
-    }).select().single();
+    final row = await SB.client
+        .from('posts')
+        .insert({
+          'fallecido_id': fallecidoId,
+          'autor_id': autor.id,
+          'autor_nombre': autor.nombreCompleto,
+          'tipo': tipo.name,
+          'texto': texto,
+          'imagenes_urls': imagenesUrls,
+          'es_privado': esPrivado,
+          'estado': 'pendiente_revision',
+        })
+        .select()
+        .single();
     return rowToPost(row as Map<String, dynamic>);
   }
 
   Future<int> toggleLike(String postId) async {
     // Incrementa el contador de likes con una función SQL en Supabase
     await SB.client.rpc('incrementar_likes', params: {'post_id': postId});
-    final row = await SB.client
-        .from('posts')
-        .select('likes')
-        .eq('id', postId)
-        .single();
+    final row =
+        await SB.client.from('posts').select('likes').eq('id', postId).single();
     return (row as Map<String, dynamic>)['likes'] as int? ?? 0;
   }
 
