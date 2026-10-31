@@ -68,7 +68,7 @@ class AppRouter {
       // ── Pantallas sin bottom nav ────────────────────────────
       GoRoute(
         path: '/fallecido/:id',
-        pageBuilder: (context, state) => _slideTransition(
+        pageBuilder: (context, state) => _noTransition(
           context, state,
           DetailScreen(fallecidoId: state.pathParameters['id']!),
         ),

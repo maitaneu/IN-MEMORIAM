@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../models/models.dart';
 import '../../../services/mock_data.dart';
 import '../../../theme/theme.dart';
@@ -205,13 +206,27 @@ class _InfoCardTanatorio extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tanatorioId = fallecido.tanatorioId;
-    final esClicable = tanatorioId != null &&
-        MockData.tanatorioPorId(tanatorioId) != null;
+    final tanatorio = tanatorioId != null
+        ? MockData.tanatorioPorId(tanatorioId)
+        : null;
+    final webUrl = tanatorio?.datosTanatorio?.web;
+    final webStr = webUrl ?? '';
+    final tieneWeb = webStr.isNotEmpty;
+    final esClicable = tanatorio != null;
+
+    Future<void> onTap() async {
+      if (tieneWeb) {
+        final uri = Uri.parse(webStr);
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+        }
+      } else if (tanatorioId != null) {
+        if (context.mounted) context.push('/tanatorio/$tanatorioId');
+      }
+    }
 
     return GestureDetector(
-      onTap: esClicable
-          ? () => context.push('/tanatorio/$tanatorioId')
-          : null,
+      onTap: esClicable ? onTap : null,
       child: Container(
         margin: const EdgeInsets.only(bottom: AppSpacing.sm),
         padding: AppSpacing.cardPadding,
@@ -240,7 +255,7 @@ class _InfoCardTanatorio extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('TANATORIO', style: AppTextStyles.caption),
+                  Text('FUNERARIA', style: AppTextStyles.caption),
                   const SizedBox(height: 4),
                   Row(
                     children: [
@@ -257,13 +272,26 @@ class _InfoCardTanatorio extends StatelessWidget {
                   ),
                   if (esClicable) ...[
                     const SizedBox(height: 2),
-                    Text(
-                      'Ver perfil del tanatorio',
-                      style: AppTextStyles.bodySmall.copyWith(
-                        color: AppColors.gold,
-                        decoration: TextDecoration.underline,
-                        decorationColor: AppColors.gold,
-                      ),
+                    Row(
+                      children: [
+                        Icon(
+                          tieneWeb ? Icons.language : Icons.arrow_forward,
+                          size: 12,
+                          color: AppColors.gold,
+                        ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            tieneWeb ? webStr : 'Ver perfil de la funeraria',
+                            style: AppTextStyles.bodySmall.copyWith(
+                              color: AppColors.gold,
+                              decoration: TextDecoration.underline,
+                              decorationColor: AppColors.gold,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ],

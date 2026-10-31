@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../models/models.dart';
 import '../../services/app_state.dart';
 import '../../services/mock_data.dart';
@@ -337,15 +338,33 @@ class _TanatorioBadgeHero extends StatelessWidget {
     if (tanatorio == null) return const SizedBox.shrink();
     final nombre = tanatorio.datosTanatorio?.razonSocial ??
         tanatorio.nombreCompleto;
+    final webUrl = tanatorio.datosTanatorio?.web;
+    final webStr = webUrl ?? '';
+    final tieneWeb = webStr.isNotEmpty;
+
+    Future<void> onTap() async {
+      if (tieneWeb) {
+        final uri = Uri.parse(webStr);
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+        }
+      } else {
+        if (context.mounted) context.push('/tanatorio/$tanatorioId');
+      }
+    }
 
     return GestureDetector(
-      onTap: () => context.push('/tanatorio/$tanatorioId'),
+      onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.only(top: 6),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.verified, size: 13, color: AppColors.goldLight),
+            Icon(
+              tieneWeb ? Icons.language : Icons.verified,
+              size: 13,
+              color: AppColors.goldLight,
+            ),
             const SizedBox(width: 5),
             Text(
               nombre,
