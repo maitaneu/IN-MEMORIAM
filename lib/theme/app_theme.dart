@@ -11,6 +11,16 @@ class AppTheme {
       useMaterial3: true,
       brightness: Brightness.light,
       scaffoldBackgroundColor: AppColors.background,
+
+      // Sin animaciones de transición en ninguna plataforma
+      pageTransitionsTheme: PageTransitionsTheme(
+        builders: Map.fromEntries(
+          TargetPlatform.values.map(
+            (p) => MapEntry(p, const _NoAnimationPageTransitionsBuilder()),
+          ),
+        ),
+      ),
+
       colorScheme: ColorScheme.fromSeed(
         seedColor: AppColors.gold,
         brightness: Brightness.light,
@@ -149,5 +159,21 @@ class AppTheme {
         behavior: SnackBarBehavior.floating,
       ),
     );
+  }
+}
+
+/// Builder que elimina cualquier animación de transición entre páginas.
+class _NoAnimationPageTransitionsBuilder extends PageTransitionsBuilder {
+  const _NoAnimationPageTransitionsBuilder();
+
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    return child;
   }
 }
