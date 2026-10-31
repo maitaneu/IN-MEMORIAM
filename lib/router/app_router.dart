@@ -17,32 +17,6 @@ Page<T> _noTransition<T>(BuildContext context, GoRouterState state, Widget child
   return NoTransitionPage<T>(key: state.pageKey, child: child);
 }
 
-/// Transición de izquierda a derecha (efecto "retroceder").
-/// Usada en todas las rutas para que el push entre desde la derecha
-/// y el pop salga hacia la derecha, que es lo natural en móvil.
-Page<T> _slideTransition<T>(BuildContext context, GoRouterState state, Widget child) {
-  return CustomTransitionPage<T>(
-    key: state.pageKey,
-    child: child,
-    transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      const begin = Offset(1.0, 0.0);
-      const end = Offset.zero;
-      const curve = Curves.easeInOut;
-      final tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-      final offsetAnimation = animation.drive(tween);
-      // Cuando hacemos pop, la pantalla sale hacia la derecha
-      final secondaryTween = Tween(begin: Offset.zero, end: const Offset(-0.3, 0.0))
-          .chain(CurveTween(curve: curve));
-      final secondaryOffsetAnimation = secondaryAnimation.drive(secondaryTween);
-      return SlideTransition(
-        position: secondaryOffsetAnimation,
-        child: SlideTransition(position: offsetAnimation, child: child),
-      );
-    },
-    transitionDuration: const Duration(milliseconds: 280),
-  );
-}
-
 /// Shell con BottomNavigationBar compartido para las rutas principales.
 class AppRouter {
   static final GoRouter router = GoRouter(
@@ -75,43 +49,43 @@ class AppRouter {
       ),
       GoRoute(
         path: '/login',
-        pageBuilder: (context, state) => _slideTransition(
+        pageBuilder: (context, state) => _noTransition(
           context, state, const LoginScreen(),
         ),
       ),
       GoRoute(
         path: '/registro',
-        pageBuilder: (context, state) => _slideTransition(
+        pageBuilder: (context, state) => _noTransition(
           context, state, const RegistroScreen(),
         ),
       ),
       GoRoute(
         path: '/filtros',
-        pageBuilder: (context, state) => _slideTransition(
+        pageBuilder: (context, state) => _noTransition(
           context, state, const FiltrosScreen(),
         ),
       ),
       GoRoute(
         path: '/ayuda',
-        pageBuilder: (context, state) => _slideTransition(
+        pageBuilder: (context, state) => _noTransition(
           context, state, const AyudaScreen(),
         ),
       ),
       GoRoute(
         path: '/legal',
-        pageBuilder: (context, state) => _slideTransition(
+        pageBuilder: (context, state) => _noTransition(
           context, state, const LegalScreen(),
         ),
       ),
       GoRoute(
         path: '/sobre',
-        pageBuilder: (context, state) => _slideTransition(
+        pageBuilder: (context, state) => _noTransition(
           context, state, const SobreScreen(),
         ),
       ),
       GoRoute(
         path: '/tanatorio/:id',
-        pageBuilder: (context, state) => _slideTransition(
+        pageBuilder: (context, state) => _noTransition(
           context, state,
           TanatorioScreen(tanatorioId: state.pathParameters['id']!),
         ),
