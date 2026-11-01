@@ -28,15 +28,56 @@ class FallecidosService {
       fechaFallecimiento: DateTime.parse(r['fecha_fallecimiento'] as String),
       fotoPrincipalUrl: r['foto_principal_url'] as String?,
       fotoGaleriaUrls: List<String>.from(r['foto_galeria_urls'] ?? []),
+      videoUrls: List<String>.from(r['video_urls'] ?? []),
       localidad: r['localidad'] as String,
       provincia: r['provincia'] as String,
       pais: r['pais'] as String? ?? 'España',
+      lugarNacimiento: r['lugar_nacimiento'] as String?,
+      lugarResidencia: r['lugar_residencia'] as String?,
       resumenBiografia: r['resumen_biografia'] as String?,
       etiquetas: List<String>.from(r['etiquetas'] ?? []),
       tanatorioId: r['tanatorio_id'] as String?,
       infoFuneral: funeral,
     );
   }
+
+  // ── Conversor EventoCronologia ────────────────────────────────
+
+  static EventoCronologia rowToEvento(Map<String, dynamic> r) =>
+      EventoCronologia(
+        id: r['id'] as String,
+        fallecidoId: r['fallecido_id'] as String,
+        anio: r['anio'] as int,
+        mes: r['mes'] as int?,
+        titulo: r['titulo'] as String,
+        descripcion: r['descripcion'] as String?,
+        imagenUrl: r['imagen_url'] as String?,
+        categoria: CategoriaEvento.values.firstWhere(
+          (c) => c.name == (r['categoria'] as String? ?? 'otro'),
+          orElse: () => CategoriaEvento.otro,
+        ),
+        fechaCreacion: DateTime.parse(r['created_at'] as String),
+      );
+
+  // ── Conversor Historia ────────────────────────────────────────
+
+  static Historia rowToHistoria(Map<String, dynamic> r) => Historia(
+        id: r['id'] as String,
+        fallecidoId: r['fallecido_id'] as String,
+        autorId: r['autor_id'] as String,
+        autorNombre: r['autor_nombre'] as String,
+        autorAvatarUrl: r['autor_avatar_url'] as String?,
+        relacionAutor: r['relacion_autor'] as String?,
+        titulo: r['titulo'] as String,
+        texto: r['texto'] as String,
+        imagenUrl: r['imagen_url'] as String?,
+        likes: r['likes'] as int? ?? 0,
+        fechaCreacion: DateTime.parse(r['created_at'] as String),
+        estado: EstadoHistoria.values.firstWhere(
+          (e) => e.name == (r['estado'] as String? ?? 'pendienteRevision'),
+          orElse: () => EstadoHistoria.pendienteRevision,
+        ),
+      );
 
   static Esquela rowToEsquela(Map<String, dynamic> r) => Esquela(
         id: r['id'] as String,
@@ -294,6 +335,121 @@ class FallecidosService {
     await SB.client.rpc('incrementar_likes', params: {'post_id': postId});
     final row =
         await SB.client.from('posts').select('likes').eq('id', postId).single();
+    return (row as Map<String, dynamic>)['likes'] as int? ?? 0;
+  }
+
+  // ── Velas virtuales ───────────────────────────────────────────
+
+  Future<int> getNumVelas(String fallecidoId) async {
+    final result = await SB.client
+        .from('velas')
+        .select('id')
+        .eq('fallecido_id', fallecidoId);
+    return (result as List).length;
+  }
+
+  Future<void> encenderVela({
+    required String fallecidoId,
+    required Usuario usuario,
+    String? mensaje,
+  }) async {
+    await SB.client.from('velas').insert({
+      'fallecido_id': fallecidoId,
+      'usuario_id': usuario.id,
+      'usuario_nombre': usuario.nombreCompleto,
+      if (mensaje != null && mensaje.isNotEmpty) 'mensaje': mensaje,
+    });
+  }
+
+  // ── Cronología ────────────────────────────────────────────────
+
+  Future<List<EventoCronologia>> getCronologia(String fallecidoId) async {
+    final rows = await SB.client
+        .from('cronologia')
+        .select()
+        .eq('fallecido_id', fallecidoId)
+        .order('anio', ascending: true);
+    return (rows as List)
+        .map((r) => rowToEvento(r as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<EventoCronologia> publicarEvento({
+    required String fallecidoId,
+    required int anio,
+    int? mes,
+    required String titulo,
+    String? descripcion,
+    String? imagenUrl,
+    CategoriaEvento categoria = CategoriaEvento.otro,
+  }) async {
+    final row = await SB.client
+        .from('cronologia')
+        .insert({
+          'fallecido_id': fallecidoId,
+          'anio': anio,
+          if (mes != null) 'mes': mes,
+          'titulo': titulo.trim(),
+          if (descripcion != null && descripcion.isNotEmpty)
+            'descripcion': descripcion.trim(),
+          if (imagenUrl != null && imagenUrl.isNotEmpty)
+            'imagen_url': imagenUrl.trim(),
+          'categoria': categoria.name,
+        })
+        .select()
+        .single();
+    return rowToEvento(row as Map<String, dynamic>);
+  }
+
+  // ── Historias ─────────────────────────────────────────────────
+
+  Future<List<Historia>> getHistorias(String fallecidoId) async {
+    final rows = await SB.client
+        .from('historias')
+        .select()
+        .eq('fallecido_id', fallecidoId)
+        .eq('estado', 'aprobada')
+        .order('created_at', ascending: false);
+    return (rows as List)
+        .map((r) => rowToHistoria(r as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<Historia> publicarHistoria({
+    required String fallecidoId,
+    required Usuario autor,
+    required String titulo,
+    required String texto,
+    String? relacionAutor,
+    String? imagenUrl,
+  }) async {
+    final row = await SB.client
+        .from('historias')
+        .insert({
+          'fallecido_id': fallecidoId,
+          'autor_id': autor.id,
+          'autor_nombre': autor.nombreCompleto,
+          'titulo': titulo.trim(),
+          'texto': texto.trim(),
+          if (relacionAutor != null && relacionAutor.isNotEmpty)
+            'relacion_autor': relacionAutor.trim(),
+          if (imagenUrl != null && imagenUrl.isNotEmpty)
+            'imagen_url': imagenUrl.trim(),
+          'estado': 'pendienteRevision',
+        })
+        .select()
+        .single();
+    return rowToHistoria(row as Map<String, dynamic>);
+  }
+
+  Future<int> toggleLikeHistoria(String historiaId) async {
+    await SB.client
+        .rpc('incrementar_likes_historia', params: {'historia_id': historiaId});
+    final row = await SB.client
+        .from('historias')
+        .select('likes')
+        .eq('id', historiaId)
+        .single();
     return (row as Map<String, dynamic>)['likes'] as int? ?? 0;
   }
 

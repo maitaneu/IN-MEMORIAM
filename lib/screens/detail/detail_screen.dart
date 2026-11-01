@@ -13,6 +13,8 @@ import 'tabs/tab_esquelas.dart';
 import 'tabs/tab_recuerdos.dart';
 import 'tabs/tab_comentarios.dart';
 import 'tabs/tab_funeral.dart';
+import 'tabs/tab_cronologia.dart';
+import 'tabs/tab_historias.dart';
 
 class DetailScreen extends StatefulWidget {
   final String fallecidoId;
@@ -30,11 +32,13 @@ class _DetailScreenState extends State<DetailScreen>
   bool _cargando = true;
 
   final List<_TabDef> _tabs = const [
-    _TabDef(icon: Icons.info_outline, label: 'Info'),
-    _TabDef(icon: Icons.article_outlined, label: 'Esquelas'),
+    _TabDef(icon: Icons.person_outline,        label: 'Info'),
+    _TabDef(icon: Icons.article_outlined,       label: 'Esquelas'),
     _TabDef(icon: Icons.photo_library_outlined, label: 'Recuerdos'),
-    _TabDef(icon: Icons.chat_bubble_outline, label: 'Condolencias'),
-    _TabDef(icon: Icons.church_outlined, label: 'Funeral'),
+    _TabDef(icon: Icons.chat_bubble_outline,    label: 'Condolencias'),
+    _TabDef(icon: Icons.auto_stories_outlined,  label: 'Historias'),
+    _TabDef(icon: Icons.timeline_outlined,      label: 'Cronología'),
+    _TabDef(icon: Icons.church_outlined,        label: 'Funeral'),
   ];
 
   @override
@@ -82,6 +86,8 @@ class _DetailScreenState extends State<DetailScreen>
             TabEsquelas(fallecidoId: f.id),
             TabRecuerdos(fallecidoId: f.id),
             TabComentarios(fallecidoId: f.id),
+            TabHistorias(fallecidoId: f.id),
+            TabCronologia(fallecido: f),
             TabFuneral(fallecido: f),
           ],
         ),

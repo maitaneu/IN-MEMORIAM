@@ -6,3 +6,5 @@ export 'comentario.dart';
 export 'flores_virtuales.dart';
 export 'post_recuerdo.dart';
 export 'filtro_busqueda.dart';
+export 'evento_cronologia.dart';
+export 'historia.dart';

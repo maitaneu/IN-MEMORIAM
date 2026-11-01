@@ -8,8 +8,14 @@ class Fallecido {
   final String localidad;
   final String provincia;
   final String pais;
+  /// Lugar de nacimiento (ciudad, localidad, país…).
+  final String? lugarNacimiento;
+  /// Última residencia habitual.
+  final String? lugarResidencia;
   final String? resumenBiografia;
   final List<String> fotoGaleriaUrls;
+  /// URLs de vídeos (YouTube embeds, URLs directas, etc.).
+  final List<String> videoUrls;
   final InfoFuneral? infoFuneral;
   final List<String> etiquetas;
   /// ID del usuario tanatorio que gestiona esta publicación (opcional).
@@ -25,8 +31,11 @@ class Fallecido {
     required this.localidad,
     required this.provincia,
     this.pais = 'España',
+    this.lugarNacimiento,
+    this.lugarResidencia,
     this.resumenBiografia,
     this.fotoGaleriaUrls = const [],
+    this.videoUrls = const [],
     this.infoFuneral,
     this.etiquetas = const [],
     this.tanatorioId,

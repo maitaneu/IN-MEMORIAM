@@ -22,13 +22,19 @@ class _TabComentariosState extends State<TabComentarios>
 
   late Future<List<Comentario>> _future;
   late Future<List<FlorVirtual>> _futureFlores;
+  late Future<int> _futureVelas;
 
   @override
   void initState() {
     super.initState();
+    _recargarTodo();
+  }
+
+  void _recargarTodo() {
     final svc = context.read<AppState>().fallecidosService;
     _future = svc.getComentarios(widget.fallecidoId);
     _futureFlores = svc.getFlores(widget.fallecidoId);
+    _futureVelas = svc.getNumVelas(widget.fallecidoId);
   }
 
   @override
@@ -39,6 +45,11 @@ class _TabComentariosState extends State<TabComentarios>
     return ListView(
       padding: AppSpacing.screenPadding,
       children: [
+        const SizedBox(height: AppSpacing.sm),
+
+        // ── Velas virtuales ──────────────────────────────────
+        _buildVelasSection(state),
+
         const SizedBox(height: AppSpacing.sm),
 
         // ── Flores virtuales ─────────────────────────────────
@@ -52,7 +63,7 @@ class _TabComentariosState extends State<TabComentarios>
           estaLogueado: state.estaLogueado,
           child: _FormComentario(
             fallecidoId: widget.fallecidoId,
-            onEnviado: _recargar,
+            onEnviado: () => setState(() => _recargarTodo()),
           ),
         ),
 
@@ -65,27 +76,35 @@ class _TabComentariosState extends State<TabComentarios>
             if (snap.connectionState == ConnectionState.waiting) {
               return const Padding(
                 padding: EdgeInsets.all(AppSpacing.xl),
-                child: Center(child: CircularProgressIndicator(color: AppColors.gold)),
+                child: Center(
+                    child: CircularProgressIndicator(color: AppColors.gold)),
               );
             }
             final lista = snap.data ?? [];
             if (lista.isEmpty) {
               return Padding(
-                padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
+                padding:
+                    const EdgeInsets.symmetric(vertical: AppSpacing.xl),
                 child: Center(
                   child: Column(
                     children: [
-                      const Icon(Icons.chat_bubble_outline, size: 48, color: AppColors.textHint),
+                      const Icon(Icons.chat_bubble_outline,
+                          size: 48, color: AppColors.textHint),
                       const SizedBox(height: AppSpacing.md),
-                      Text('Sé el primero en dejar una condolencia',
-                          style: AppTextStyles.bodyLarge, textAlign: TextAlign.center),
+                      Text(
+                        'Sé el primero en dejar una condolencia',
+                        style: AppTextStyles.bodyLarge,
+                        textAlign: TextAlign.center,
+                      ),
                     ],
                   ),
                 ),
               );
             }
             return Column(
-              children: lista.map((c) => _ComentarioTile(comentario: c)).toList(),
+              children: lista
+                  .map((c) => _ComentarioTile(comentario: c))
+                  .toList(),
             );
           },
         ),
@@ -94,6 +113,182 @@ class _TabComentariosState extends State<TabComentarios>
       ],
     );
   }
+
+  // ── Sección de velas ──────────────────────────────────────────
+
+  Widget _buildVelasSection(AppState state) {
+    return FutureBuilder<int>(
+      future: _futureVelas,
+      builder: (ctx, snap) {
+        final numVelas = snap.data ?? 0;
+
+        return Container(
+          margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+          padding: AppSpacing.cardPadding,
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(AppSpacing.radiusMedium),
+            border: Border.all(color: AppColors.border, width: 0.5),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Text('🕯️', style: TextStyle(fontSize: 16)),
+                  const SizedBox(width: 8),
+                  Text('Velas encendidas'.toUpperCase(),
+                      style: AppTextStyles.caption),
+                  const Spacer(),
+                  if (numVelas > 0)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: AppColors.goldLight.withOpacity(0.25),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        '$numVelas',
+                        style: AppTextStyles.labelLarge
+                            .copyWith(color: AppColors.goldDark),
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              // Llamas decorativas
+              if (numVelas > 0) ...[
+                SizedBox(
+                  height: 36,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: numVelas > 12 ? 12 : numVelas,
+                    itemBuilder: (_, i) => Padding(
+                      padding: const EdgeInsets.only(right: 4),
+                      child: Text(
+                        '🕯️',
+                        style: TextStyle(
+                          fontSize: 22 + (i % 3) * 2.0,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+              ],
+              Text(
+                numVelas == 0
+                    ? 'Sé el primero en encender una vela en su memoria.'
+                    : '$numVelas ${numVelas == 1 ? 'persona ha encendido' : 'personas han encendido'} una vela en su memoria.',
+                style: AppTextStyles.bodySmall
+                    .copyWith(fontStyle: FontStyle.italic),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              LoginWall(
+                accion: 'encender una vela',
+                estaLogueado: state.estaLogueado,
+                child: TextButton.icon(
+                  icon: const Text('🕯️',
+                      style: TextStyle(fontSize: 16)),
+                  label: const Text('Encender una vela'),
+                  onPressed: state.estaLogueado
+                      ? () => _mostrarDialogoVela(ctx, state)
+                      : null,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _mostrarDialogoVela(BuildContext context, AppState state) {
+    final mensajeCtrl = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+            top: Radius.circular(AppSpacing.radiusLarge)),
+      ),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(
+          left: AppSpacing.md,
+          right: AppSpacing.md,
+          top: AppSpacing.md,
+          bottom: MediaQuery.of(ctx).viewInsets.bottom + AppSpacing.md,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.border,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            const Center(
+              child: Text('🕯️', style: TextStyle(fontSize: 48)),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text('Encender una vela', style: AppTextStyles.headlineMedium),
+            const SizedBox(height: 4),
+            Text(
+              'Un gesto de recuerdo y amor en su memoria.',
+              style: AppTextStyles.bodySmall,
+            ),
+            const SizedBox(height: AppSpacing.md),
+            TextField(
+              controller: mensajeCtrl,
+              maxLines: 2,
+              decoration: const InputDecoration(
+                hintText: 'Mensaje opcional (te recordamos con cariño…)',
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () async {
+                  await state.fallecidosService.encenderVela(
+                    fallecidoId: widget.fallecidoId,
+                    usuario: state.usuarioActual!,
+                    mensaje: mensajeCtrl.text.trim().isEmpty
+                        ? null
+                        : mensajeCtrl.text.trim(),
+                  );
+                  if (ctx.mounted) Navigator.pop(ctx);
+                  setState(() => _recargarTodo());
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Vela encendida en su memoria 🕯️'),
+                        backgroundColor: AppColors.success,
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  }
+                },
+                child: const Text('Encender'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ── Sección de flores ─────────────────────────────────────────
 
   Widget _buildFloresSection(AppState state) {
     return FutureBuilder<List<FlorVirtual>>(
@@ -116,13 +311,14 @@ class _TabComentariosState extends State<TabComentarios>
                 children: [
                   const Text('💐', style: TextStyle(fontSize: 16)),
                   const SizedBox(width: 8),
-                  Text('Flores virtuales'.toUpperCase(), style: AppTextStyles.caption),
+                  Text('Flores virtuales'.toUpperCase(),
+                      style: AppTextStyles.caption),
                   const Spacer(),
                   if (flores.isNotEmpty)
-                    Text('${flores.length}', style: AppTextStyles.bodySmall),
+                    Text('${flores.length}',
+                        style: AppTextStyles.bodySmall),
                 ],
               ),
-
               if (flores.isNotEmpty) ...[
                 const SizedBox(height: AppSpacing.sm),
                 SizedBox(
@@ -130,29 +326,32 @@ class _TabComentariosState extends State<TabComentarios>
                   child: ListView.separated(
                     scrollDirection: Axis.horizontal,
                     itemCount: flores.length > 8 ? 8 : flores.length,
-                    separatorBuilder: (_, __) => const SizedBox(width: 8),
+                    separatorBuilder: (_, __) =>
+                        const SizedBox(width: 8),
                     itemBuilder: (_, i) {
-                      final f = flores[i];
+                      final flor = flores[i];
                       return Tooltip(
-                        message: '${f.tipo.emoji} ${f.tipo.nombre} de ${f.usuarioNombre}',
+                        message:
+                            '${flor.tipo.emoji} ${flor.tipo.nombre} de ${flor.usuarioNombre}',
                         child: CircleAvatar(
                           radius: 18,
-                          backgroundColor: AppColors.goldLight.withOpacity(0.3),
-                          child: Text(f.tipo.emoji, style: const TextStyle(fontSize: 18)),
+                          backgroundColor:
+                              AppColors.goldLight.withOpacity(0.3),
+                          child: Text(flor.tipo.emoji,
+                              style: const TextStyle(fontSize: 18)),
                         ),
                       );
                     },
                   ),
                 ),
               ],
-
               const SizedBox(height: AppSpacing.sm),
-
               LoginWall(
                 accion: 'enviar flores virtuales',
                 estaLogueado: state.estaLogueado,
                 child: TextButton.icon(
-                  icon: const Text('🌹', style: TextStyle(fontSize: 16)),
+                  icon: const Text('🌹',
+                      style: TextStyle(fontSize: 16)),
                   label: const Text('Enviar flores'),
                   onPressed: state.estaLogueado
                       ? () => _mostrarDialogoFlores(ctx, state)
@@ -175,7 +374,8 @@ class _TabComentariosState extends State<TabComentarios>
       isScrollControlled: true,
       backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppSpacing.radiusLarge)),
+        borderRadius: BorderRadius.vertical(
+            top: Radius.circular(AppSpacing.radiusLarge)),
       ),
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setModalState) => Padding(
@@ -191,51 +391,61 @@ class _TabComentariosState extends State<TabComentarios>
             children: [
               Center(
                 child: Container(
-                  width: 40, height: 4,
+                  width: 40,
+                  height: 4,
                   decoration: BoxDecoration(
-                    color: AppColors.border, borderRadius: BorderRadius.circular(2),
+                    color: AppColors.border,
+                    borderRadius: BorderRadius.circular(2),
                   ),
                 ),
               ),
               const SizedBox(height: AppSpacing.md),
-              Text('Enviar flores virtuales', style: AppTextStyles.headlineMedium),
+              Text('Enviar flores virtuales',
+                  style: AppTextStyles.headlineMedium),
               const SizedBox(height: AppSpacing.md),
-
-              // Selector de flor
               Wrap(
-                spacing: 8, runSpacing: 8,
+                spacing: 8,
+                runSpacing: 8,
                 children: TipoFlor.values.map((tipo) {
                   final sel = seleccionada == tipo;
                   return GestureDetector(
-                    onTap: () => setModalState(() => seleccionada = tipo),
+                    onTap: () =>
+                        setModalState(() => seleccionada = tipo),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
-                        color: sel ? AppColors.goldLight.withOpacity(0.4) : AppColors.surfaceVariant,
-                        borderRadius: BorderRadius.circular(AppSpacing.radiusMedium),
+                        color: sel
+                            ? AppColors.goldLight.withOpacity(0.4)
+                            : AppColors.surfaceVariant,
+                        borderRadius: BorderRadius.circular(
+                            AppSpacing.radiusMedium),
                         border: Border.all(
-                          color: sel ? AppColors.gold : AppColors.border,
+                          color:
+                              sel ? AppColors.gold : AppColors.border,
                           width: sel ? 1.5 : 0.5,
                         ),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(tipo.emoji, style: const TextStyle(fontSize: 20)),
+                          Text(tipo.emoji,
+                              style: const TextStyle(fontSize: 20)),
                           const SizedBox(width: 6),
-                          Text(tipo.nombre, style: AppTextStyles.labelMedium),
+                          Text(tipo.nombre,
+                              style: AppTextStyles.labelMedium),
                         ],
                       ),
                     ),
                   );
                 }).toList(),
               ),
-
               const SizedBox(height: AppSpacing.md),
               TextField(
                 controller: mensajeCtrl,
                 maxLines: 2,
-                decoration: const InputDecoration(hintText: 'Mensaje opcional...'),
+                decoration: const InputDecoration(
+                    hintText: 'Mensaje opcional...'),
               ),
               const SizedBox(height: AppSpacing.md),
               SizedBox(
@@ -253,9 +463,7 @@ class _TabComentariosState extends State<TabComentarios>
                                 : mensajeCtrl.text.trim(),
                           );
                           if (ctx.mounted) Navigator.pop(ctx);
-                          setState(() {
-                            _futureFlores = state.fallecidosService.getFlores(widget.fallecidoId);
-                          });
+                          setState(() => _recargarTodo());
                         },
                   child: const Text('Enviar'),
                 ),
@@ -267,11 +475,6 @@ class _TabComentariosState extends State<TabComentarios>
     );
   }
 
-  void _recargar() {
-    setState(() {
-      _future = context.read<AppState>().fallecidosService.getComentarios(widget.fallecidoId);
-    });
-  }
 }
 
 // ── Formulario de comentario ────────────────────────────────────────
@@ -279,7 +482,8 @@ class _FormComentario extends StatefulWidget {
   final String fallecidoId;
   final VoidCallback onEnviado;
 
-  const _FormComentario({required this.fallecidoId, required this.onEnviado});
+  const _FormComentario(
+      {required this.fallecidoId, required this.onEnviado});
 
   @override
   State<_FormComentario> createState() => _FormComentarioState();
@@ -328,7 +532,8 @@ class _FormComentarioState extends State<_FormComentario> {
             controller: _controller,
             maxLines: 3,
             decoration: const InputDecoration(
-              hintText: 'Escribe tu condolencia o mensaje de apoyo...',
+              hintText:
+                  'Escribe tu condolencia o mensaje de apoyo...',
             ),
           ),
           const SizedBox(height: AppSpacing.sm),
@@ -342,11 +547,15 @@ class _FormComentarioState extends State<_FormComentario> {
               ),
               const SizedBox(width: AppSpacing.sm),
               ElevatedButton(
-                onPressed: _enviando ? null : () => _enviar(context, state),
+                onPressed: _enviando
+                    ? null
+                    : () => _enviar(context, state),
                 child: _enviando
                     ? const SizedBox(
-                        width: 16, height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: Colors.white),
                       )
                     : const Text('Enviar'),
               ),
@@ -374,7 +583,8 @@ class _FormComentarioState extends State<_FormComentario> {
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Condolencia enviada — pendiente de revisión'),
+          content:
+              Text('Condolencia enviada — pendiente de revisión'),
           backgroundColor: AppColors.success,
         ),
       );
@@ -413,7 +623,8 @@ class _ComentarioTile extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Text(comentario.autorNombre, style: AppTextStyles.labelLarge),
+                    Text(comentario.autorNombre,
+                        style: AppTextStyles.labelLarge),
                     const Spacer(),
                     Text(
                       IMDateUtils.fechaCorta(comentario.fechaCreacion),
@@ -424,7 +635,8 @@ class _ComentarioTile extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   comentario.texto,
-                  style: AppTextStyles.bodyMedium.copyWith(height: 1.5),
+                  style:
+                      AppTextStyles.bodyMedium.copyWith(height: 1.5),
                 ),
               ],
             ),
